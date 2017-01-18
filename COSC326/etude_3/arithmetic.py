@@ -11,8 +11,6 @@
 
  (N)ormal and (L)eft-to-right evaluation are addressed.
 
- 61 LOC
-
  Finds solution for:
  10 numbers: 0.003 seconds
  15 numbers: 0.18 seconds
@@ -26,9 +24,11 @@
 import fileinput, re, math, time
 start_time = time.time()
 
-nums = []
-constraints = []
+nums, constraints = [], []
 
+# Read in each line. If the line doesn't contain the constraint of N or L
+# it is a number line. Otherwise, the constraints are recorded, and the
+# proceedure begins.
 for line in fileinput.input():
     combinations = []
     if not re.search('[NL]', line):
@@ -39,7 +39,15 @@ for line in fileinput.input():
         numOps = len(nums)-1 #number of operators
         numSolutions = int(math.pow(2, (numOps))) #number of permutations poss
         ops = []
-        # Append operators in the correct order
+        # Generate a list of the operators for the given scenario
+        # (essentially a truth-table).
+        # Each scenario has 2^n-1 combinations (where n are the numbers
+        # provided). This means that there are n-1 operators needed for
+        # each combination. For a scenario with three numbers, the first
+        # operator in a combination will be '+' if n%(2^3)<2^2, where
+        # n = the iteration of the combination starting with 0; it will
+        # be '*' otherwise. The second operator will be '+' if n%(2^2)<2^1,
+        # and so on.
         for i in range(numSolutions):
             for j in reversed(range(numOps)):
                 if (i%math.pow(2,j+1)) < (math.pow(2, j)):
@@ -49,16 +57,6 @@ for line in fileinput.input():
 
         # Proceedure for (L)eft to Right arithmetic
         if constraints[1] == 'L':
-            # Generate a list of the operators for the given scenario
-            # (essentially a truth-table).
-            # Each scenario has 2^n-1 combinations (where n is the numbers
-            # provided). This means that there are n-1 operators needed for
-            # each combination. For a scenario with three numbers, the first
-            # operator in a combination will be '+' if n%(2^3)<2^2, where
-            # n = the iteration of the combination starting with 0; it will
-            # be * otherwise. The second operator will be '+' if n%(2^2)<2^1,
-            # and so on.
-
             # Group operators per combination (if there is more than 1 number)
             if ops:
                 opGroups = [ops[x:x+numOps] for x in range(0, len(ops), numOps)]
