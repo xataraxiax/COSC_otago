@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <!--COSC326 Etude 5: Numbers-->
+    <!--@authors: Jono Sue (4097307), Stefan Pedersen(1427681)-->
+    <title>Etude 5: Numbers</title>
+</head>
+
+<body>
+    <h1>Etude 5: Numbers</h1>
+    <p>Jono Sue (4097307), Stefan Pedersen (1427681)</p>
+    <h2>Part 1</h2>
+    <h3>Q1: What is integer overflow?</h3>
+    <p>Integer Overflow is caused when the result of an operation exceeds the maximum size of the Integer type used to store it.</p>
+    <p>For an unsigned Integer, the range of values that can be represented is 0 - 2^32-1 because it does not need the last bit for the sign.</p>
+    <p>A signed Integer can represent the values in the range of -2^31 to 2^31-1</p>
+    <h3>Q2: How do you detect it?</h3>
+    <p>Signed Integer overflow in C produces undefined behaviour because it uses the left-most bit to represent the sign to indicate if an integer is positive or negative. This results in fewer numbers that can be represented as explained in Q1.</p>
+    <p>There are a number of compiler options which will allow runtime exceptions to be raised which will abort the program. -ftrapv in GCC "generates traps for signed overflow on addition, subtraction, multiplication operations" (GCC documentation).</p>
+    <h3>Q3: How do you prevent it?</h3>
+    <p>Code must be structured in a way such that any intermediate results of operations do not encounter overflow.</p>
+    <h3>Q4: Why are you confident your code is correct?</h3>
+    <p>We are fairly confident that our code is correct because we endeavored to implement tests for all the laws specifed in the assignment brief.</p>
+    <p>The program runs each one of the tests specified in the Etude task on 1 000 000 random numbers. If at any point one of these tests do not pass, the program will indicate which test failed and abort the program. A success message will be printed when the tests have all been passed by all the input numbers.</p>
+    <h3>Q5: How hard was it to write a bulletproof version of this little function?</h3>
+    <p>Objectively, it was not particularly difficult. It is clear, however, that there quite a few different aspects and checks that need to be implemented in order to achieve portable code with predictable results. It is unlikely that these would have all occured to us had the etude itself not guided our thinking.</p>
+    <h3>Q6: Reflection.</h3>
+    <p>Without considering the limits of the integer data type, we cannot be confident that we are getting the right results when running operations on a wide range of integers.</p>
+    <p>It would be highly desireable (crucial perhaps) to employ safe languages in applications which require absolute precision (e.g. calculating the concentrations for drug administration, vehicle brake systems).</p>
+    <p>Numerically unsafe languages might be considered in situations where the consequence of errors are not as dire, and the trade-off between precision and expediency is thought worthwhile. With numerically unsafe languages, the onus is upon the programmer to ensure s/he understands the limitations and potential consequences of the code.</p>
+    <h2>Part 2</h2>
+    <h3>Q7: Compile and run the Hypotenuse program, comment.</h3>
+    <p>In order to better examine the program, we printed x, y, and z alongside e. We noticed that once i = 10 in the loop, some of the values being multiplied by 10 (x and z; y followed suit at i=11) can no longer be represented in 32 bits accurately, resulting in overflow values. From this point onwards, the x, y and z values are not precisely multiples of 10 (e.g. at 10^12 x is 3000000053248.00).</p>
+    <p>These small inaccuracies produce values other than 0. However, due to the limitations of using floats to represent very small values, the fabsf fucntion runs into underflow and by default, a 0 is returned.</p>
+    <p>When i = 15, x, y and z become values that produce a result that is large enough to be represented. As a result, 15 returns a relative error value other than 0.</p>
+    <p>When i = 19, inf gets generated to indicate that the number produced exceeds the maximum size which can be represented in 64 bits (i.e. greater than 2^64). This is because the operation which adds the two squared numbers together causes overflow.</p>
+    <p>See table below for the numbers.</p>
+    <h3>Q8: Change the program to divide by 10.0f instead of multiplying, and increase loop to 25.</h3>
+    <p>When i = 1, x and y are the first to experience underflow after getting divided by 10 because they become values so small that they can no longer be represented accurately by a 32 bit float. However at this stage, z is not affected as it appears to be large enough to still be accurately represented.</p>
+    <p>If underflow and overflow did not exist, the relative values would all be 0. However, since these inaccuracies in floating point representation of numbers are present, it is causing the equation <code>fabsf(hyp(x, y)-z)/z</code> to be evaluated as a value greater than 0. There are many places that these inaccuracies could arise since each of the values of x, y and z are getting smaller with every iteration and exceeding the number of bits to be represented accurately.</p>
+    <p>When i = 9, the result from the operations produces 0, a stark difference to the results produced by the iterations surrounding it. Underflow could have contributed to x and y becoming values of 0, while z may still have been large enough to be represented since x &lt; y &lt; z. In this case, x and y will generate a hypotenuse of 0 and dividing 0 by anything also produces 0. However, this may be unlikely as every value produced onward from the iteration where i=9 produces a result greater than 0.</p>
+    <p>When i = 24 the calculation produces a relative value of exactly 1. The preceding values are all on an upward trend. So the intermediate operations involving floating point arithmetic may have lost precision and caused a round off error.</p>
+    <p>See table below for the numbers.</p>
+    <h3>Q9: Second Hypotenuse Function - What changes in the test cases? Why does <code>hypot()</code> exist?</h3>
+    <p>With the second hypotenuse function, the results for multiplication are all 0.000000e+00 (without the problems which occured at i=15 and i=19). With division, the second formula produces identical results as the first for most numbers up until i=16 (excepting i = 2, 4, 9, where an actual value now replaces 0.000000e+00). From i=17, the numbers differ (except for i=19).</p>
+    <p>The <code>hypot()</code> method exists to account for the occurence of overflow and underflow in intermediate calculations so that correct results are produced.</p>
+        <table cellpadding="15">
+            <caption><strong>Test Results from Questions 7-9</strong></caption>
+            <tr>
+                <th></th>
+                <th>Question 7</th>
+                <th>Question 8</th>
+                <th>Question 9</th>
+                <th>Question 9</th>
+            </tr>
+            <tr>
+                <th>Loop</th>
+                <th>Hypt1 *</th>
+                <th>Hypt1 /</th>
+                <th>Hypt2 *</th>
+                <th>Hypt2 /</th>
+            </tr>
+            <tr>
+                <td>0</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>7.450581e-08</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>1.164153e-07</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>0.000000e+00</td>
+                <td>7.275958e-08</td>
+                <td>0.000000e+00</td>
+                <td>7.275958e-08</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>0.000000e+00</td>
+                <td>9.094948e-08</td>
+                <td>0.000000e+00</td>
+                <td>9.094948e-08</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>0.000000e+00</td>
+                <td>1.136869e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.136869e-07</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>0.000000e+00</td>
+                <td>1.421086e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.421086e-07</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>0.000000e+00</td>
+                <td>8.881785e-08</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>0.000000e+00</td>
+                <td>1.110223e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.110223e-07</td>
+            </tr>
+            <tr>
+                <td>11</td>
+                <td>0.000000e+00</td>
+                <td>1.387779e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.387779e-07</td>
+            </tr>
+            <tr>
+                <td>12</td>
+                <td>0.000000e+00</td>
+                <td>8.673618e-08</td>
+                <td>0.000000e+00</td>
+                <td>8.673618e-08</td>
+            </tr>
+            <tr>
+                <td>13</td>
+                <td>0.000000e+00</td>
+                <td>1.084202e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.084202e-07</td>
+            </tr>
+            <tr>
+                <td>14</td>
+                <td>0.000000e+00</td>
+                <td>6.776264e-08</td>
+                <td>0.000000e+00</td>
+                <td>6.776264e-08</td>
+            </tr>
+            <tr>
+                <td>15</td>
+                <td>1.073742e-07</td>
+                <td>8.470330e-08</td>
+                <td>0.000000e+00</td>
+                <td>8.470330e-08</td>
+            </tr>
+            <tr>
+                <td>16</td>
+                <td>0.000000e+00</td>
+                <td>1.058791e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.058791e-07</td>
+            </tr>
+            <tr>
+                <td>17</td>
+                <td>0.000000e+00</td>
+                <td>6.617446e-08</td>
+                <td>0.000000e+00</td>
+                <td>1.323489e-07</td>
+            </tr>
+            <tr>
+                <td>18</td>
+                <td>0.000000e+00</td>
+                <td>8.271807e-08</td>
+                <td>0.000000e+00</td>
+                <td>1.654361e-07</td>
+            </tr>
+            <tr>
+                <td>19</td>
+                <td>inf</td>
+                <td>1.033976e-07</td>
+                <td>0.000000e+00</td>
+                <td>1.033976e-07</td>
+            </tr>
+            <tr>
+                <td>20</td>
+                <td>-</td>
+                <td>1.292470e-07</td>
+                <td>-</td>
+                <td>6.462349e-08</td>
+            </tr>
+            <tr>
+                <td>21</td>
+                <td>-</td>
+                <td>1.138989e-05</td>
+                <td>-</td>
+                <td>8.077936e-08</td>
+            </tr>
+            <tr>
+                <td>22</td>
+                <td>-</td>
+                <td>1.138383e-03</td>
+                <td>-</td>
+                <td>1.009742e-07</td>
+            </tr>
+            <tr>
+                <td>23</td>
+                <td>-</td>
+                <td>5.879122e-02</td>
+                <td>-</td>
+                <td>1.262177e-07</td>
+            </tr>
+            <tr>
+                <td>24</td>
+                <td>-</td>
+                <td>1.000000e+00</td>
+                <td>-</td>
+                <td>7.888609e-08</td>
+            </tr>
+        </table>
+    <h3>Q10: Heron's formula vs Baseht.</h3>
+        <table cellpadding="15">
+            <tr>
+                <th>Value a</th>
+                <th>Heron</th>
+                <th>Baseht</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>4.330127e-01</td>
+                <td>4.330127e-01</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>4.993746e+00</td>
+                <td>4.993746e+00</td>
+            </tr>
+            <tr>
+                <td>10^2</td>
+                <td>4.999937e+01</td>
+                <td>4.999937e+01</td>
+            </tr>
+            <tr>
+                <td>10^3</td>
+                <td>4.999999e+02</td>
+                <td>4.999999e+02</td>
+            </tr>
+            <tr>
+                <td>10^4</td>
+                <td>5.000000e+03</td>
+                <td>5.000000e+03</td>
+            </tr>
+            <tr>
+                <td>10^5</td>
+                <td>5.000000e+04</td>
+                <td>5.000000e+04</td>
+            </tr>
+            <tr>
+                <td>10^6</td>
+                <td>5.000000e+05</td>
+                <td>5.000000e+05</td>
+            </tr>
+            <tr>
+                <td>10^7</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+06</td>
+            </tr>
+            <tr>
+                <td>10^8</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+07</td>
+            </tr>
+            <tr>
+                <td>10^9</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+08</td>
+            </tr>
+            <tr>
+                <td>10^10</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+09</td>
+            </tr>
+            <tr>
+                <td>10^11</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+10</td>
+            </tr>
+            <tr>
+                <td>10^12</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+11</td>
+            </tr>
+            <tr>
+                <td>10^13</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+12</td>
+            </tr>
+            <tr>
+                <td>10^14</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+13</td>
+            </tr>
+            <tr>
+                <td>10^15</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+14</td>
+            </tr>
+            <tr>
+                <td>10^16</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+15</td>
+            </tr>
+            <tr>
+                <td>10^17</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+16</td>
+            </tr>
+            <tr>
+                <td>10^18</td>
+                <td>0.000000e+00</td>
+                <td>5.000000e+17</td>
+            </tr>
+        </table>
+    <h4>One of these functions goes catastrophically wrong; which one and why?</h4>
+    <p>A catastrophic failure appears to happen in Heron's formula once a reaches 10^7. The formula at that point returns an area of 0</p>
+    <p>The problem occurs in Heron's formula when we attempt to subtract a from s. Because we are subtracting two very large, but nearly equal, numbers (10000000.5 - 10000000), catastrophic cancellation occurs where "the number of significant digits in the result is reduced unacceptably" (Wikipedia 'Loss of Significance'). At 10^7, the result of s-a is 0.000000 instead of the expected 0.500000.</p>
+    <p>The baseht formula avoids this large subtraction, and thus avoids the problem.</p>
+</body>
